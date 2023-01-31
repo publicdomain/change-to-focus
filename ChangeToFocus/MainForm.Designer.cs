@@ -41,6 +41,8 @@ namespace ChangeToFocus
 			this.setIntervalToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.optionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.alwaysOnTopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.refreshOnstartToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.refreshOnnewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.freeReleasesPublicDomainisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.originalThreadDonationCodercomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -135,7 +137,9 @@ namespace ChangeToFocus
 			// optionsToolStripMenuItem
 			// 
 			this.optionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-									this.alwaysOnTopToolStripMenuItem});
+									this.alwaysOnTopToolStripMenuItem,
+									this.refreshOnstartToolStripMenuItem,
+									this.refreshOnnewToolStripMenuItem});
 			this.optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
 			this.optionsToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
 			this.optionsToolStripMenuItem.Text = "&Options";
@@ -144,8 +148,24 @@ namespace ChangeToFocus
 			// alwaysOnTopToolStripMenuItem
 			// 
 			this.alwaysOnTopToolStripMenuItem.Name = "alwaysOnTopToolStripMenuItem";
-			this.alwaysOnTopToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+			this.alwaysOnTopToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
 			this.alwaysOnTopToolStripMenuItem.Text = "&Always on top";
+			// 
+			// refreshOnstartToolStripMenuItem
+			// 
+			this.refreshOnstartToolStripMenuItem.Checked = true;
+			this.refreshOnstartToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.refreshOnstartToolStripMenuItem.Name = "refreshOnstartToolStripMenuItem";
+			this.refreshOnstartToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
+			this.refreshOnstartToolStripMenuItem.Text = "Refresh on &start";
+			// 
+			// refreshOnnewToolStripMenuItem
+			// 
+			this.refreshOnnewToolStripMenuItem.Checked = true;
+			this.refreshOnnewToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.refreshOnnewToolStripMenuItem.Name = "refreshOnnewToolStripMenuItem";
+			this.refreshOnnewToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
+			this.refreshOnnewToolStripMenuItem.Text = "Refresh on &new";
 			// 
 			// helpToolStripMenuItem
 			// 
@@ -292,6 +312,7 @@ namespace ChangeToFocus
 			this.monitoredListView.TabIndex = 2;
 			this.monitoredListView.UseCompatibleStateImageBehavior = false;
 			this.monitoredListView.View = System.Windows.Forms.View.Details;
+			this.monitoredListView.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.OnMonitoredListViewItemChecked);
 			// 
 			// idColumnHeader
 			// 
@@ -312,6 +333,10 @@ namespace ChangeToFocus
 			this.checkToFocusLabel.TabIndex = 1;
 			this.checkToFocusLabel.Text = "&Check to focus on change:";
 			this.checkToFocusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// processMonitorTimer
+			// 
+			this.processMonitorTimer.Tick += new System.EventHandler(this.OnProcessMonitorTimerTick);
 			// 
 			// MainForm
 			// 
@@ -335,6 +360,8 @@ namespace ChangeToFocus
 			this.ResumeLayout(false);
 			this.PerformLayout();
 		}
+		private System.Windows.Forms.ToolStripMenuItem refreshOnnewToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem refreshOnstartToolStripMenuItem;
 		private System.Windows.Forms.ColumnHeader titleColumnHeader;
 		private System.Windows.Forms.ColumnHeader idColumnHeader;
 		private System.Windows.Forms.ToolStripStatusLabel checkedToolStripStatusLabel;

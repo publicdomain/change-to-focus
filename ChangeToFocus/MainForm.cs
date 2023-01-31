@@ -22,6 +22,7 @@ namespace ChangeToFocus
         /// </summary>
         Dictionary<int, string> processIdTitleDictionary = new Dictionary<int, string>();
 
+
         /// <summary>
         /// Initializes a new instance of the <see cref="T:ChangeToFocus.MainForm"/> class.
         /// </summary>
@@ -126,11 +127,15 @@ namespace ChangeToFocus
                 // Check there's something to work with
                 if (process.MainWindowTitle.Trim().Length > 0)
                 {
-                    // Add to dictionary
-                    this.processIdTitleDictionary.Add(process.Id, process.MainWindowTitle);
+                    // Set listview item
+                    ListViewItem listViewItem = new ListViewItem(new[] { process.Id.ToString(), process.MainWindowTitle })
+                    {
+                        // Set tag
+                        Tag = process.Id
+                    };
 
                     // Add to listview
-                    this.monitoredListView.Items.Add(new ListViewItem(new[] { process.Id.ToString(), process.MainWindowTitle }));
+                    this.monitoredListView.Items.Add(listViewItem);
                 }
             }
 
@@ -169,6 +174,39 @@ namespace ChangeToFocus
         private void OnMainFormFormClosing(object sender, FormClosingEventArgs e)
         {
             // TODO Add code
+        }
+
+        /// <summary>
+        /// Handles the process monitor timer tick.
+        /// </summary>
+        /// <param name="sender">Sender object.</param>
+        /// <param name="e">Event arguments.</param>
+        private void OnProcessMonitorTimerTick(object sender, EventArgs e)
+        {
+            // TODO Add code
+        }
+
+        /// <summary>
+        /// Handles the monitored list view item checked.
+        /// </summary>
+        /// <param name="sender">Sender object.</param>
+        /// <param name="e">Event arguments.</param>
+        private void OnMonitoredListViewItemChecked(object sender, ItemCheckedEventArgs e)
+        {
+            // Set process id
+            int checkedProcessId = (int)e.Item.Tag;
+
+            // Test checked state
+            if (e.Item.Checked)
+            {
+                // Add to dictionary
+                this.processIdTitleDictionary.Add(checkedProcessId, Process.GetProcessById(checkedProcessId).MainWindowTitle);
+            }
+            else
+            {
+                // Remove when unchecked
+                this.processIdTitleDictionary.Remove(checkedProcessId);
+            }
         }
 
         /// <summary>
