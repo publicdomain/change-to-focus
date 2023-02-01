@@ -10,7 +10,10 @@ namespace ChangeToFocus
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Drawing;
+    using System.Runtime.InteropServices;
+    using System.Threading;
     using System.Windows.Forms;
+    using Microsoft.VisualBasic;
 
     /// <summary>
     /// Description of MainForm.
@@ -22,6 +25,87 @@ namespace ChangeToFocus
         /// </summary>
         Dictionary<int, string> processIdTitleDictionary = new Dictionary<int, string>();
 
+        /// <summary>
+        /// Shows the window.
+        /// </summary>
+        /// <returns><c>true</c>, if window was shown, <c>false</c> otherwise.</returns>
+        /// <param name="hWnd">H window.</param>
+        /// <param name="nCmdShow">N cmd show.</param>
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        /// <summary>
+        /// Sets the foreground window.
+        /// </summary>
+        /// <returns><c>true</c>, if foreground window was set, <c>false</c> otherwise.</returns>
+        /// <param name="hWnd">H window.</param>
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        /// <summary>
+        /// Gets the window long.
+        /// </summary>
+        /// <returns>The window long.</returns>
+        /// <param name="hWnd">H window.</param>
+        /// <param name="nIndex">N index.</param>
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        /// <summary>
+        /// Sets the window position.
+        /// </summary>
+        /// <returns><c>true</c>, if window position was set, <c>false</c> otherwise.</returns>
+        /// <param name="hWnd">H window.</param>
+        /// <param name="hWndInsertAfter">H window insert after.</param>
+        /// <param name="X">X.</param>
+        /// <param name="Y">Y.</param>
+        /// <param name="cx">Cx.</param>
+        /// <param name="cy">Cy.</param>
+        /// <param name="uFlags">U flags.</param>
+        [DllImport("user32.dll")]
+        static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
+
+        /// <summary>
+        /// The hwnd topmost.
+        /// </summary>
+        static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+
+        /// <summary>
+        /// The hwnd notopmost.
+        /// </summary>
+        static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
+
+        /// <summary>
+        /// The hwnd top.
+        /// </summary>
+        static readonly IntPtr HWND_TOP = new IntPtr(0);
+
+        /// <summary>
+        /// The swp nosize.
+        /// </summary>
+        const UInt32 SWP_NOSIZE = 0x0001;
+
+        /// <summary>
+        /// The swp nomove.
+        /// </summary>
+        const UInt32 SWP_NOMOVE = 0x0002;
+
+        /// <summary>
+        /// The swp showwindow.
+        /// </summary>
+        const UInt32 SWP_SHOWWINDOW = 0x0040;
+
+        /// <summary>
+        /// The gwl exstyle.
+        /// </summary>
+        const int GWL_EXSTYLE = -20;
+
+        /// <summary>
+        /// The ws ex topmost.
+        /// </summary>
+        const int WS_EX_TOPMOST = 0x0008;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:ChangeToFocus.MainForm"/> class.
@@ -124,6 +208,13 @@ namespace ChangeToFocus
             // Iterate
             foreach (Process process in processes)
             {
+                // Check for current process
+                if (process.Id == Process.GetCurrentProcess().Id)
+                {
+                    // Skip iteration
+                    continue;
+                }
+
                 // Check there's something to work with
                 if (process.MainWindowTitle.Trim().Length > 0)
                 {
@@ -144,6 +235,9 @@ namespace ChangeToFocus
 
             // Resume drawing
             this.monitoredListView.EndUpdate();
+
+            // Update monitored count
+            this.monitoredToolStripStatusLabel.Text = this.monitoredListView.Items.Count.ToString();
         }
 
         /// <summary>
@@ -164,6 +258,8 @@ namespace ChangeToFocus
         private void OnMainFormLoad(object sender, EventArgs e)
         {
             // TODO Add code
+            //#
+            this.processMonitorTimer.Enabled = true;
         }
 
         /// <summary>
@@ -183,7 +279,120 @@ namespace ChangeToFocus
         /// <param name="e">Event arguments.</param>
         private void OnProcessMonitorTimerTick(object sender, EventArgs e)
         {
-            // TODO Add code
+            // Check there's something to work with
+            if (this.processIdTitleDictionary.Count == 0)
+            {
+                // Halt flow
+                return;
+            }
+
+            // Expired IDs list
+            List<int> expiredIdsList = new List<int>();
+
+            // Updated IDs list
+            List<int> updatedIdsdList = new List<int>();
+
+            // Set process
+            Process process = null;
+
+            // Iterate dictionary 
+            foreach (var item in this.processIdTitleDictionary)
+            {
+                // Try to set process by ID
+                try
+                {
+                    // Set process
+                    process = Process.GetProcessById(item.Key);
+                }
+                catch (Exception)
+                {
+                    // Mark process ID for removal
+                    expiredIdsList.Add(item.Key);
+                }
+
+                // Compare titles
+                if (process != null && process.MainWindowTitle != this.processIdTitleDictionary[item.Key])
+                {
+                    /* TODO Bring to the fore / focus & activate [Can be improved/optimized] */
+
+                    // TODO Restore [SW_RESTORE]
+                    ShowWindow(process.MainWindowHandle, 9);
+
+                    // Set isTopmost flag
+                    bool isTopmost = (GetWindowLong(process.MainWindowHandle, GWL_EXSTYLE) & WS_EX_TOPMOST) != 0;
+
+                    // Check for no topmost
+                    if (!isTopmost)
+                    {
+                        // Set window topmost
+                        SetWindowPos(process.MainWindowHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+                    }
+
+                    // Foreground
+                    SetForegroundWindow(process.MainWindowHandle);
+
+                    if (!isTopmost)
+                    {
+                        // Take topmost away
+                        SetWindowPos(process.MainWindowHandle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+                    }
+
+                    // Top of z-order
+                    SetWindowPos(process.MainWindowHandle, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+                    // Activate
+                    //Interaction.AppActivate(process.Id);
+
+                    // Add to updated ids
+                    updatedIdsdList.Add(item.Key);
+                }
+            }
+
+            // Check if must remove expired processes
+            if (expiredIdsList.Count > 0)
+            {
+                // Iterate
+                foreach (var item in expiredIdsList)
+                {
+                    // Remove from dictionary
+                    this.processIdTitleDictionary.Remove(item);
+
+                    // TODO Remove from list view [can be merged with "Iterate listview items" loop below via refactoring]
+                    for (int i = this.monitoredListView.Items.Count - 1; i >= 0; i--)
+                    {
+                        // Check tag
+                        if (expiredIdsList.Contains((int)this.monitoredListView.Items[i].Tag))
+                        {
+                            // Remove the expired item
+                            this.monitoredListView.Items[i].Remove();
+                        }
+                    }
+                }
+            }
+
+            // Check if must update titles for updated processes
+            if (updatedIdsdList.Count > 0)
+            {
+                // Iterate listview items
+                for (int i = 0; i < this.monitoredListView.Items.Count; i++)
+                {
+                    // Check tag
+                    if (updatedIdsdList.Contains((int)this.monitoredListView.Items[i].Tag))
+                    {
+                        // Update in list view
+                        this.monitoredListView.Items[i].SubItems[1].Text = process.MainWindowTitle;
+
+                        // Update in dictionary
+                        this.processIdTitleDictionary[(int)this.monitoredListView.Items[i].Tag] = process.MainWindowTitle;
+                    }
+                }
+            }
+
+            // Update monitored count
+            this.monitoredToolStripStatusLabel.Text = this.monitoredListView.Items.Count.ToString();
+
+            // Update checked count
+            this.checkedToolStripStatusLabel.Text = this.monitoredListView.CheckedItems.Count.ToString();
         }
 
         /// <summary>
@@ -207,6 +416,9 @@ namespace ChangeToFocus
                 // Remove when unchecked
                 this.processIdTitleDictionary.Remove(checkedProcessId);
             }
+
+            // Update checked count
+            this.checkedToolStripStatusLabel.Text = this.monitoredListView.CheckedItems.Count.ToString();
         }
 
         /// <summary>
