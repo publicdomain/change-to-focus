@@ -307,7 +307,30 @@ namespace ChangeToFocus
         /// <param name="e">Event arguments.</param>
         private void OnStartStopMonitoringButtonClick(object sender, EventArgs e)
         {
-            // TODO Add code
+            // Check if must start or stop
+            if (this.startStopMonitoringButton.Text == "&Start monitoring")
+            {
+                // Set text
+                this.startStopMonitoringButton.Text = "&Stop monitoring";
+
+                // Set color
+                this.startStopMonitoringButton.ForeColor = System.Drawing.Color.Red;
+
+                // Start the timer
+                this.processMonitorTimer.Start();
+            }
+            else
+            {
+                // Set text
+                this.startStopMonitoringButton.Text = "&Start monitoring";
+
+                // Set color
+                this.startStopMonitoringButton.ForeColor = System.Drawing.Color.Green;
+
+                // Start the timer
+                this.processMonitorTimer.Stop();
+
+            }
         }
 
         /// <summary>
@@ -333,6 +356,13 @@ namespace ChangeToFocus
 
             // Set topmost
             this.TopMost = this.alwaysOnTopToolStripMenuItem.Checked;
+
+            // Check if must refresh
+            if (this.refreshOnstartToolStripMenuItem.Checked)
+            {
+                // Refresh
+                this.refreshListButton.PerformClick();
+            }
         }
 
         /// <summary>
