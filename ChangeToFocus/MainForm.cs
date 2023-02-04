@@ -11,6 +11,7 @@ namespace ChangeToFocus
     using System.Diagnostics;
     using System.Drawing;
     using System.IO;
+    using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Threading;
     using System.Windows.Forms;
@@ -133,6 +134,26 @@ namespace ChangeToFocus
         {
             // The InitializeComponent() call is required for Windows Forms designer support.
             this.InitializeComponent();
+
+            /* Set icons */
+
+            // Set associated icon from exe file
+            this.associatedIcon = Icon.ExtractAssociatedIcon(typeof(MainForm).GetTypeInfo().Assembly.Location);
+
+            // Set PublicDomain.is tool strip menu item image
+            this.freeReleasesPublicDomainisToolStripMenuItem.Image = this.associatedIcon.ToBitmap();
+
+            /* Settings data */
+
+            // Check for settings file
+            if (!File.Exists(this.settingsDataPath))
+            {
+                // Create new settings file
+                this.SaveSettingsFile(this.settingsDataPath, new SettingsData());
+            }
+
+            // Load settings from disk
+            this.settingsData = this.LoadSettingsFile(this.settingsDataPath);
         }
 
         /// <summary>
@@ -299,11 +320,15 @@ namespace ChangeToFocus
             // Set interval
             this.processMonitorTimer.Interval = this.settingsData.Interval;
 
-            // Set checked options
-            foreach (ToolStripMenuItem toolStripMenuItem in this.optionsToolStripMenuItem.DropDownItems)
+            // Check if must check by settings data (otherwise allow for defaults)
+            if (this.settingsData.CheckedOptionsList.Count > 0)
             {
-                // Check as per settings data
-                toolStripMenuItem.Checked = this.settingsData.CheckedOptionsList.Contains(toolStripMenuItem.Name) ? true : false;
+                // Set checked options
+                foreach (ToolStripMenuItem toolStripMenuItem in this.optionsToolStripMenuItem.DropDownItems)
+                {
+                    // Check as per settings data
+                    toolStripMenuItem.Checked = this.settingsData.CheckedOptionsList.Contains(toolStripMenuItem.Name) ? true : false;
+                }
             }
 
             // Set topmost
