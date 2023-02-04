@@ -123,7 +123,12 @@ namespace ChangeToFocus
         /// <param name="e">Event arguments.</param>
         private void OnSetIntervalToolStripMenuItemClick(object sender, EventArgs e)
         {
-            // TODO Add code
+            // Try to parse integer from user input
+            if (int.TryParse(Interaction.InputBox("Enter new interval (in milliseconds):", "Set interval", this.processMonitorTimer.Interval.ToString()), out int parsedInt) && parsedInt > 0)
+            {
+                // Set itnerval
+                this.processMonitorTimer.Interval = parsedInt;
+            }
         }
 
         /// <summary>
@@ -258,8 +263,6 @@ namespace ChangeToFocus
         private void OnMainFormLoad(object sender, EventArgs e)
         {
             // TODO Add code
-            //#
-            this.processMonitorTimer.Enabled = true;
         }
 
         /// <summary>
