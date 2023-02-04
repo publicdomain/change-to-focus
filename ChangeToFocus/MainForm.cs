@@ -24,6 +24,22 @@ namespace ChangeToFocus
     public partial class MainForm : Form
     {
         /// <summary>
+        /// Gets or sets the associated icon.
+        /// </summary>
+        /// <value>The associated icon.</value>
+        private Icon associatedIcon = null;
+
+        /// <summary>
+        /// The settings data.
+        /// </summary>
+        private SettingsData settingsData = null;
+
+        /// <summary>
+        /// The settings data path.
+        /// </summary>
+        private string settingsDataPath = $"{Application.ProductName}-SettingsData.txt";
+
+        /// <summary>
         /// The process identifier title dictionary.
         /// </summary>
         Dictionary<int, string> processIdTitleDictionary = new Dictionary<int, string>();
@@ -290,7 +306,25 @@ namespace ChangeToFocus
         /// <param name="e">Event arguments.</param>
         private void OnMainFormFormClosing(object sender, FormClosingEventArgs e)
         {
-            // TODO Add code
+            // New checked options list
+            List<string> checkedOptionsList = new List<string>();
+
+            // Set checked options list
+            foreach (ToolStripMenuItem toolStripMenuItem in this.optionsToolStripMenuItem.DropDownItems)
+            {
+                // Check if checked
+                if (toolStripMenuItem.Checked)
+                {
+                    // Add to checked options list
+                    checkedOptionsList.Add(toolStripMenuItem.Name);
+                }
+            }
+
+            // Set into settings data
+            this.settingsData.CheckedOptionsList = checkedOptionsList;
+
+            // Save settings data to disk
+            this.SaveSettingsFile(this.settingsDataPath, this.settingsData);
         }
 
         /// <summary>
