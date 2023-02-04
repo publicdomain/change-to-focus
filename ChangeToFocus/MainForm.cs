@@ -155,7 +155,15 @@ namespace ChangeToFocus
         /// <param name="e">Event arguments.</param>
         private void OnNewToolStripMenuItemClick(object sender, EventArgs e)
         {
-            // TODO Add code
+            // Clear list view
+            this.monitoredListView.Items.Clear();
+
+            // Check if must refresh
+            if (this.refreshOnnewToolStripMenuItem.Checked)
+            {
+                // Refresh
+                this.refreshListButton.PerformClick();
+            }
         }
 
         /// <summary>
