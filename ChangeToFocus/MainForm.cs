@@ -296,7 +296,18 @@ namespace ChangeToFocus
         /// <param name="e">Event arguments.</param>
         private void OnMainFormLoad(object sender, EventArgs e)
         {
-            // TODO Add code
+            // Set interval
+            this.processMonitorTimer.Interval = this.settingsData.Interval;
+
+            // Set checked options
+            foreach (ToolStripMenuItem toolStripMenuItem in this.optionsToolStripMenuItem.DropDownItems)
+            {
+                // Check as per settings data
+                toolStripMenuItem.Checked = this.settingsData.CheckedOptionsList.Contains(toolStripMenuItem.Name) ? true : false;
+            }
+
+            // Set topmost
+            this.TopMost = this.alwaysOnTopToolStripMenuItem.Checked;
         }
 
         /// <summary>
@@ -306,6 +317,9 @@ namespace ChangeToFocus
         /// <param name="e">Event arguments.</param>
         private void OnMainFormFormClosing(object sender, FormClosingEventArgs e)
         {
+            // Set interval
+            this.settingsData.Interval = this.processMonitorTimer.Interval;
+
             // New checked options list
             List<string> checkedOptionsList = new List<string>();
 
